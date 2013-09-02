@@ -35,7 +35,6 @@ typedef struct RotationVector {
     double rotZ;
 } RotationVector;
 
-
 typedef struct Object {
     Point3D pos;
     Model *model;
@@ -93,6 +92,7 @@ Point3D Point3D_subtract(Point3D p1, Point3D p2){
 }
 
 Point3D Point3D_rotZ(Point3D p, double angle){
+    if (angle == 0.0) return p;
     int x = p.x * cos(angle) - p.y * sin(angle);
     int y = p.x * sin(angle) + p.y * cos(angle);
     int z = p.z;
@@ -102,6 +102,7 @@ Point3D Point3D_rotZ(Point3D p, double angle){
 }
 
 Point3D Point3D_rotX(Point3D p, double angle){
+    if (angle == 0.0) return p;
     int y = p.y * cos(angle) - p.z * sin(angle);
     int z = p.y * sin(angle) + p.z * cos(angle);
     int x = p.x;
@@ -111,6 +112,7 @@ Point3D Point3D_rotX(Point3D p, double angle){
 }
 
 Point3D Point3D_rotY(Point3D p, double angle){
+    if (angle == 0.0) return p;
     int z = p.z * cos(angle) - p.x * sin(angle);
     int x = p.z * sin(angle) + p.x * cos(angle);
     int y = p.y;
@@ -121,10 +123,10 @@ Point3D Point3D_rotY(Point3D p, double angle){
 
 // Rotates a point around the origin.
 Point3D Point3D_rotate(Point3D p, RotationVector rotation){
-   p =  Point3D_rotX(p, rotation.rotX);
-   p =  Point3D_rotY(p, rotation.rotY);
-   p =  Point3D_rotZ(p, rotation.rotZ);
-   return p;
+    p =  Point3D_rotY(p, rotation.rotY); // Y rotation has to be first... Don't ask me why.
+    p =  Point3D_rotX(p, rotation.rotX);
+    p =  Point3D_rotZ(p, rotation.rotZ);
+    return p;
 }
 
 Point3D Point3D_rotate_around_point(Point3D p, RotationVector rotation, Point3D center){
@@ -211,7 +213,11 @@ void render_object(SDL_Surface *surf, Object *obj, Point3D offset, RotationVecto
 	); 
 }
 
-// Scales a model by a factor.
+/* Scales a model by a factor.
+   Note that this scales away from the model's personal origin,
+   not the center of the model and definitely not the global origin.
+
+ */
 void Model_scale(Model *model, double factor){
     int i;
     for (i = 0; i < model->num_lines; i++){
@@ -232,8 +238,12 @@ Object * Object_new(Model *model, Uint32 color, int x, int y, int z){
     pos.z = z;
 
     obj->pos = pos;
+    
+    // We're going to assume that the rotation starts at 0.
+    // The caller can change it later if they want.
     RotationVector rot = {0.0,0.0,0.0};
     obj->rotation = rot;
+    
     return obj;
 }
 
@@ -281,32 +291,33 @@ int main(){
     SDL_WM_GrabInput(SDL_GRAB_ON);
     
     int running = 1;
+    int time = 0;
     
-    
-    Point3D offset = {1,1,1};
+    Point3D offset = {0,0,0};
     RotationVector scene_rotation = {0.0,0.0,0.0};
 
     double lookX = 0.0;
     double lookY = 0.0;
+    
     Model *cubeModel = generate_cube(100);
     Model_scale(cubeModel, 100);
-
     Object *cube1 = Object_new(cubeModel, 0xFF0000, 0,0,0);
     Object *cube2 = Object_new(cubeModel, 0x00FF00, 100,0,800);
     Object *cube3 = Object_new(cubeModel, 0x0000FF, -400, 0, 0);
+    
     Uint8 *keyState = SDL_GetKeyState(NULL);
     while (running == 1){
+	time++;
 	SDL_FillRect(screen, NULL, 0x000000); //Clear the screen
 	render_object(screen, cube1, offset, scene_rotation);
 	render_object(screen, cube2, offset, scene_rotation);
 	render_object(screen, cube3, offset, scene_rotation);
-
-	cube1->rotation.rotZ += 3.1415/200;
 	
 	SDL_Flip(screen);
-
-	printf("Scene: %lf, %lf \n", cos(scene_rotation.rotY), sin(scene_rotation.rotY));
-	printf("Look: %lf, %lf \n", cos(lookX), sin(lookX));
+	if (time % 100 == 0){
+	    printf("Scene: %lf, %lf \n", cos(scene_rotation.rotY), sin(scene_rotation.rotY));
+	    printf("Look: %lf, %lf \n", cos(lookX), sin(lookX));
+	}
 	// Handle Events
 	while (SDL_PollEvent(&event)){
 	    switch (event.type){
@@ -319,10 +330,10 @@ int main(){
 		lookY += event.motion.yrel * MOUSESCALING;
 		
 		scene_rotation.rotY = lookX;
-		scene_rotation.rotX = cos(lookX) * lookY;
-		scene_rotation.rotZ = sin(lookX) * lookY;
+		// Since the camera is always looking in the same direction from a global standpoint,
+		// it is fine to just adjust the X rotation of the scene.
+		scene_rotation.rotX = lookY;
 		
-		//scene_rotation.rotX += event.motion.yrel * MOUSESCALING;
 		
 	    }
 	    
@@ -356,6 +367,7 @@ int main(){
 		printf("Releasing mouse...\n");
 		SDL_WM_GrabInput(SDL_GRAB_OFF);
 		SDL_ShowCursor(1);
+		SDL_Delay(100); // Let the user stop pressing escape.
 	    } else {
 		printf("Grabbing mouse...\n");
 		SDL_WM_GrabInput(SDL_GRAB_ON);
