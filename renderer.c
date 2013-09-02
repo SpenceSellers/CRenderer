@@ -4,24 +4,13 @@
 #include <SDL/SDL.h>
 
 #include "vectors.h"
-
+#include "objects.h"
 #define HEIGHT 800
 #define WIDTH 800
 #define MOVESPEED 10
 #define MOUSESCALING 1.0/1000
 
-/* A model is a shape (series of lines) with no positional information at all. */
-typedef struct Model {
-    int num_lines;
-    Line3D *lines;
-} Model;
 
-typedef struct Object {
-    Point3D pos;
-    Model *model;
-    Uint32 color;
-    RotationVector rotation;
-} Object;
 
 // Sets a pixel at a point on a surface to a color.
 void set_pixel(SDL_Surface *surf, int x, int y, Uint32 color){
@@ -116,47 +105,6 @@ void render_object(SDL_Surface *surf, Object *obj, Point3D offset, RotationVecto
 	); 
 }
 
-/* Scales a model by a factor.
-   Note that this scales away from the model's personal origin,
-   not the center of the model and definitely not the global origin.
-
- */
-void Model_scale(Model *model, double factor){
-    int i;
-    for (i = 0; i < model->num_lines; i++){
-	Line3D *l;
-        Line3D_scale(&model->lines[i], factor);
-    }
-}
-
-// Creates a new object according to the common parameters.
-Object * Object_new(Model *model, Uint32 color, int x, int y, int z){
-    Object *obj = malloc(sizeof(Object));
-    obj->model = model;
-    obj->color = color;
-
-    Point3D pos;
-    pos.x = x;
-    pos.y = y;
-    pos.z = z;
-
-    obj->pos = pos;
-    
-    // We're going to assume that the rotation starts at 0.
-    // The caller can change it later if they want.
-    RotationVector rot = {0.0,0.0,0.0};
-    obj->rotation = rot;
-    
-    return obj;
-}
-
-// Applies a rotation delta to an object.
-void Object_rotate(Object *obj, float rotX, float rotY, float rotZ){
-    obj->rotation.rotX += rotX;
-    obj->rotation.rotY += rotY;
-    obj->rotation.rotZ += rotZ;
-   
-}
 
 //Generates a new model of a 1x1x1 cube. Will probably need to be scaled.
 Model * generate_cube(){
@@ -217,10 +165,6 @@ int main(){
 	render_object(screen, cube3, offset, scene_rotation);
 	
 	SDL_Flip(screen);
-	if (time % 100 == 0){
-	    printf("Scene: %lf, %lf \n", cos(scene_rotation.rotY), sin(scene_rotation.rotY));
-	    printf("Look: %lf, %lf \n", cos(lookX), sin(lookX));
-	}
 	// Handle Events
 	while (SDL_PollEvent(&event)){
 	    switch (event.type){
@@ -242,16 +186,20 @@ int main(){
 	    
 	}
 	if (keyState[SDLK_w]){
-	    offset.z -= MOVESPEED;
+	    offset.z -= cos(scene_rotation.rotY) * MOVESPEED;
+	    offset.x += sin(scene_rotation.rotY) * MOVESPEED;
 	}
 	if (keyState[SDLK_s]){
-	    offset.z += MOVESPEED;
+	    offset.z += cos(scene_rotation.rotY) * MOVESPEED;
+	    offset.x -= sin(scene_rotation.rotY) * MOVESPEED;
 	}
 	if (keyState[SDLK_a]){
-	    offset.x += MOVESPEED;
+	    offset.x += cos(scene_rotation.rotY) * MOVESPEED;
+	    offset.z += sin(scene_rotation.rotY) * MOVESPEED;
 	}
 	if (keyState[SDLK_d]){
-	    offset.x -= MOVESPEED;
+	    offset.x -= cos(scene_rotation.rotY) * MOVESPEED;
+	    offset.z -= sin(scene_rotation.rotY) * MOVESPEED;
 	}
 	if (keyState[SDLK_COMMA]){
 	    offset.y -= MOVESPEED;
@@ -270,7 +218,7 @@ int main(){
 		printf("Releasing mouse...\n");
 		SDL_WM_GrabInput(SDL_GRAB_OFF);
 		SDL_ShowCursor(1);
-		SDL_Delay(100); // Let the user stop pressing escape.
+		SDL_Delay(1000); // Let the user stop pressing escape.
 	    } else {
 		printf("Grabbing mouse...\n");
 		SDL_WM_GrabInput(SDL_GRAB_ON);
