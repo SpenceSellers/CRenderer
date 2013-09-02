@@ -6,6 +6,7 @@
 #define HEIGHT 800
 #define WIDTH 800
 #define MOVESPEED 10
+#define MOUSESCALING 1.0/1000
 typedef struct Point3D {
     int x;
     int y;
@@ -22,6 +23,7 @@ typedef struct Line3D {
     Point3D p2;
 } Line3D;
 
+/* A model is a shape (series of lines) with no positional information at all. */
 typedef struct Model {
     int num_lines;
     Line3D *lines;
@@ -41,6 +43,7 @@ typedef struct Object {
     RotationVector rotation;
 } Object;
 
+// Sets a pixel at a point on a surface to a color.
 void set_pixel(SDL_Surface *surf, int x, int y, Uint32 color){
     if (x >= surf->w || x < 0){
 	return;
@@ -53,6 +56,7 @@ void set_pixel(SDL_Surface *surf, int x, int y, Uint32 color){
     *pixmem32 = color;
 }
 
+/* Draws a line on a surface using Bresenham's line algorithm */
 void draw_line(SDL_Surface *surf, int x1, int y1, int x2, int y2, Uint32 color){
     // Bresenham's line algorithm
     
@@ -115,6 +119,7 @@ Point3D Point3D_rotY(Point3D p, double angle){
     return result;
 }
 
+// Rotates a point around the origin.
 Point3D Point3D_rotate(Point3D p, RotationVector rotation){
    p =  Point3D_rotX(p, rotation.rotX);
    p =  Point3D_rotY(p, rotation.rotY);
@@ -128,6 +133,9 @@ Point3D Point3D_rotate_around_point(Point3D p, RotationVector rotation, Point3D 
 	center);
 }
 
+/* Scales a line by a factor.
+   Note that lines are scaled around the origin!
+ */
 void Line3D_scale(Line3D *line, double factor){
     line->p1.x = (int) line->p1.x * factor;
     line->p1.y = (int) line->p1.y * factor;
@@ -138,12 +146,17 @@ void Line3D_scale(Line3D *line, double factor){
     line->p2.z = (int) line->p2.z * factor;
 }
 
+// Rotates a line around a specified point. 
 Line3D Line3D_rotate_around_point(Line3D line, RotationVector rotation, Point3D center){
     line.p1 = Point3D_rotate_around_point(line.p1, rotation, center);
     line.p2 = Point3D_rotate_around_point(line.p2, rotation, center);
     return line;
 }
 
+/* Projects a 3D point onto a 2D 'surface'.
+   The camera is always at (0,0,0), so if the camera isn't actually
+   there you'll need to move the points themselves.
+ */
 Point2D project_point(Point3D point, int eye_distance){
     Point2D s;
     if (point.z <= 0){ //Point is behind camera
@@ -163,8 +176,8 @@ void render_line3D(Line3D l, Point3D offset,  SDL_Surface *surf, Uint32 color, R
     Point3D first = Point3D_rotate(Point3D_add(l.p1, offset), scenerotation);
     Point3D second = Point3D_rotate(Point3D_add(l.p2, offset), scenerotation);
     //Project the two points.
-    Point2D p1 = project_point(first, 200);
-    Point2D p2 = project_point(second, 200);
+    Point2D p1 = project_point(first, 500);
+    Point2D p2 = project_point(second, 500);
     draw_line(surf, p1.x, p1.y, p2.x, p2.y, color);
 }
 
@@ -198,6 +211,7 @@ void render_object(SDL_Surface *surf, Object *obj, Point3D offset, RotationVecto
 	); 
 }
 
+// Scales a model by a factor.
 void Model_scale(Model *model, double factor){
     int i;
     for (i = 0; i < model->num_lines; i++){
@@ -206,6 +220,7 @@ void Model_scale(Model *model, double factor){
     }
 }
 
+// Creates a new object according to the common parameters.
 Object * Object_new(Model *model, Uint32 color, int x, int y, int z){
     Object *obj = malloc(sizeof(Object));
     obj->model = model;
@@ -222,12 +237,15 @@ Object * Object_new(Model *model, Uint32 color, int x, int y, int z){
     return obj;
 }
 
+// Applies a rotation delta to an object.
 void Object_rotate(Object *obj, float rotX, float rotY, float rotZ){
     obj->rotation.rotX += rotX;
     obj->rotation.rotY += rotY;
     obj->rotation.rotZ += rotZ;
+   
 }
-    
+
+//Generates a new model of a 1x1x1 cube. Will probably need to be scaled.
 Model * generate_cube(){
     Model *model = malloc(sizeof(Model));
     model->num_lines = 12;
@@ -257,35 +275,55 @@ int main(){
     SDL_Event event;
     SDL_Init(SDL_INIT_VIDEO);
     screen = SDL_SetVideoMode(HEIGHT, WIDTH, 32, SDL_RESIZABLE | SDL_HWSURFACE);
-    Uint32 drawcolor = SDL_MapRGB(screen->format, 255, 0, 0);
-    
+    SDL_ShowCursor(0);
+    SDL_WM_GrabInput(SDL_GRAB_ON);
     int running = 1;
     
     Point3D camera = {0, 0, 0};
     
     Point3D offset = {1,1,1};
     RotationVector scene_rotation = {0.0,0.0,0.0};
-    
+
+    double lookX = 0.0;
+    double lookY = 0.0;
     Model *cubeModel = generate_cube(100);
     Model_scale(cubeModel, 100);
 
     Object *cube1 = Object_new(cubeModel, 0xFF0000, 0,0,0);
     Object *cube2 = Object_new(cubeModel, 0x00FF00, 100,0,800);
-
+    Object *cube3 = Object_new(cubeModel, 0x0000FF, -400, 0, 0);
     Uint8 *keyState = SDL_GetKeyState(NULL);
     while (running == 1){
 	SDL_FillRect(screen, NULL, 0x000000); //Clear the screen
 	render_object(screen, cube1, offset, scene_rotation);
 	render_object(screen, cube2, offset, scene_rotation);
+	render_object(screen, cube3, offset, scene_rotation);
+
+	cube1->rotation.rotZ += 3.1415/200;
+	
 	SDL_Flip(screen);
 
+	printf("Scene: %lf, %lf \n", cos(scene_rotation.rotY), sin(scene_rotation.rotY));
+	printf("Look: %lf, %lf \n", cos(lookX), sin(lookX));
 	// Handle Events
 	while (SDL_PollEvent(&event)){
 	    switch (event.type){
 	    case SDL_QUIT:
 		running = 0;
 		break;
+
+	    case SDL_MOUSEMOTION:
+		lookX -= event.motion.xrel * MOUSESCALING;
+		lookY += event.motion.yrel * MOUSESCALING;
+		
+		scene_rotation.rotY = lookX;
+		scene_rotation.rotX = cos(lookX) * lookY;
+		scene_rotation.rotZ = sin(lookX) * lookY;
+		
+		//scene_rotation.rotX += event.motion.yrel * MOUSESCALING;
+		
 	    }
+	    
 	}
 	if (keyState[SDLK_w]){
 	    offset.z -= MOVESPEED;
@@ -306,10 +344,21 @@ int main(){
 	    offset.y += MOVESPEED;
 	}
 	if (keyState[SDLK_SEMICOLON]){
-	    scene_rotation.rotY += 0.01;
+	    scene_rotation.rotZ += 0.01;
 	}
 	if (keyState[SDLK_QUOTE]){
-	    scene_rotation.rotY -= 0.01;
+	    scene_rotation.rotZ -= 0.01;
+	}
+	if (keyState[SDLK_ESCAPE]){
+	    if (SDL_WM_GrabInput(SDL_GRAB_QUERY) == SDL_GRAB_ON){
+		printf("Releasing mouse...\n");
+		SDL_WM_GrabInput(SDL_GRAB_OFF);
+		SDL_ShowCursor(1);
+	    } else {
+		printf("Grabbing mouse...\n");
+		SDL_WM_GrabInput(SDL_GRAB_ON);
+		SDL_ShowCursor(0);
+	    }
 	}
 	SDL_Delay(10);
     }
