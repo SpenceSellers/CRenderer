@@ -1,6 +1,6 @@
 LIBS = -lSDL
-all: renderer.o vectors.o objects.o
-	gcc renderer.o vectors.o objects.o -o renderer $(LIBS)
+all: renderer.o vectors.o objects.o scene.o
+	gcc renderer.o vectors.o objects.o scene.o -o renderer $(LIBS)
 
 renderer.o: renderer.c
 	gcc -c renderer.c $(LIBS)
@@ -10,5 +10,7 @@ vectors.o: vectors.c
 
 objects.o: objects.c
 	gcc -c objects.c $(LIBS)
+scene.o: scene.c
+	gcc -c scene.c $(LIBS)
 clean:
 	rm *.o renderer

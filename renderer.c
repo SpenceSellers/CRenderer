@@ -5,6 +5,8 @@
 
 #include "vectors.h"
 #include "objects.h"
+#include "scene.h"
+
 #define HEIGHT 800
 #define WIDTH 800
 #define MOVESPEED 10
@@ -105,6 +107,14 @@ void render_object(SDL_Surface *surf, Object *obj, Point3D offset, RotationVecto
 	); 
 }
 
+void render_scene(SDL_Surface *surf, Scene *scene, Point3D offset, RotationVector scenerotation){
+    SceneList *current;
+    for (current = scene->objects; current != NULL; current = current->next){
+	render_object(surf, current->obj, offset, scenerotation);
+    }
+}
+
+
 
 //Generates a new model of a 1x1x1 cube. Will probably need to be scaled.
 Model * generate_cube(){
@@ -143,6 +153,9 @@ int main(){
     
     int running = 1;
     int time = 0;
+
+    Scene *scene = malloc(sizeof(scene));
+    scene->objects = NULL;
     
     Point3D offset = {0,0,0};
     RotationVector scene_rotation = {0.0,0.0,0.0};
@@ -152,17 +165,17 @@ int main(){
     
     Model *cubeModel = generate_cube(100);
     Model_scale(cubeModel, 100);
-    Object *cube1 = Object_new(cubeModel, 0xFF0000, 0,0,0);
-    Object *cube2 = Object_new(cubeModel, 0x00FF00, 100,0,800);
-    Object *cube3 = Object_new(cubeModel, 0x0000FF, -400, 0, 0);
+
+    Scene_add_object(scene, Object_new(cubeModel, 0xFF0000, 0,0,0));
+    Scene_add_object(scene, Object_new(cubeModel, 0x00FF00, 100,0,800));
+    Scene_add_object(scene, Object_new(cubeModel, 0x0000FF, -400, 0, 0));
     
     Uint8 *keyState = SDL_GetKeyState(NULL);
     while (running == 1){
 	time++;
 	SDL_FillRect(screen, NULL, 0x000000); //Clear the screen
-	render_object(screen, cube1, offset, scene_rotation);
-	render_object(screen, cube2, offset, scene_rotation);
-	render_object(screen, cube3, offset, scene_rotation);
+
+	render_scene(screen, scene, offset, scene_rotation);
 	
 	SDL_Flip(screen);
 	// Handle Events
@@ -212,6 +225,9 @@ int main(){
 	}
 	if (keyState[SDLK_QUOTE]){
 	    scene_rotation.rotZ -= 0.01;
+	}
+	if (keyState[SDLK_f]){
+	    Scene_add_object(scene, Object_new(cubeModel, 0xFF00FF, -400, 0, 1000));
 	}
 	if (keyState[SDLK_ESCAPE]){
 	    if (SDL_WM_GrabInput(SDL_GRAB_QUERY) == SDL_GRAB_ON){
