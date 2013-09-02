@@ -275,11 +275,13 @@ int main(){
     SDL_Event event;
     SDL_Init(SDL_INIT_VIDEO);
     screen = SDL_SetVideoMode(HEIGHT, WIDTH, 32, SDL_RESIZABLE | SDL_HWSURFACE);
+    
+    // Set up mouse.
     SDL_ShowCursor(0);
     SDL_WM_GrabInput(SDL_GRAB_ON);
+    
     int running = 1;
     
-    Point3D camera = {0, 0, 0};
     
     Point3D offset = {1,1,1};
     RotationVector scene_rotation = {0.0,0.0,0.0};
