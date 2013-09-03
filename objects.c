@@ -43,7 +43,9 @@ Object * Object_new(Model *model, Uint32 color, int x, int y, int z){
     pos.z = z;
 
     obj->pos = pos;
-    
+
+    obj->ai = NULL;
+    obj->ai_data_free = NULL;
     // We're going to assume that the rotation starts at 0.
     // The caller can change it later if they want.
     RotationVector rot = {0.0,0.0,0.0};
@@ -57,3 +59,11 @@ void Object_rotate(Object *obj, float rotX, float rotY, float rotZ){
     obj->rotation.rotY += rotY;
     obj->rotation.rotZ += rotZ;
 }
+
+void Object_tick(Object *obj, Scene *scene){
+    if (obj->ai == NULL) return;
+    (obj->ai)(obj, scene);
+}
+
+    
+    

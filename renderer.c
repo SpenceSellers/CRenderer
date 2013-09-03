@@ -13,7 +13,6 @@
 #define MOUSESCALING 1.0/1000
 
 
-
 // Sets a pixel at a point on a surface to a color.
 void set_pixel(SDL_Surface *surf, int x, int y, Uint32 color){
     if (x >= surf->w || x < 0){
@@ -108,8 +107,9 @@ void render_object(SDL_Surface *surf, Object *obj, Point3D offset, RotationVecto
 		 origin, //Scene Rotation Center
 		 obj->color,
 		 obj->rotation, //Object rotation
-		 Point3D_rotate_around_point(obj->pos, scenerotation, origin) //Object rotation center
-	); 
+		 //obj->pos
+		 Point3D_rotate_around_point(obj->pos, scenerotation, obj->pos) //Object rotation center
+		 ); 
 }
 
 void render_scene(SDL_Surface *surf, Scene *scene, Point3D offset, RotationVector scenerotation){
@@ -120,7 +120,9 @@ void render_scene(SDL_Surface *surf, Scene *scene, Point3D offset, RotationVecto
 }
 
 
-
+void rotateAI(Object *obj, Scene *scene){
+    obj->rotation.rotZ += M_PI/100;
+}
 //Generates a new model of a 1x1x1 cube. Will probably need to be scaled.
 Model * generate_cube(){
     Model *model;
@@ -156,8 +158,7 @@ int main(){
     int running = 1;
     int time = 0;
 
-    Scene *scene = malloc(sizeof(scene));
-    scene->objects = NULL;
+    Scene *scene = Scene_new();
     
     Point3D offset = {0,0,0};
     RotationVector scene_rotation = {0.0,0.0,0.0};
@@ -169,10 +170,13 @@ int main(){
     Scene_add_object(scene, Object_new(cubeModel, 0xFF0000, 0,0,0));
     Scene_add_object(scene, Object_new(cubeModel, 0x00FF00, 100,0,800));
     Scene_add_object(scene, Object_new(cubeModel, 0x0000FF, -400, 0, 0));
+
+    scene->objects->obj->ai = &rotateAI;
     
     Uint8 *keyState = SDL_GetKeyState(NULL);
     while (running == 1){
 	time++;
+	Scene_tick(scene);
 	SDL_FillRect(screen, NULL, 0x000000); //Clear the screen
 
 	render_scene(screen, scene, offset, scene_rotation);
