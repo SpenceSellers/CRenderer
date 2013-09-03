@@ -1,4 +1,4 @@
-LIBS = -lSDL
+LIBS = -lSDL -lm
 all: renderer.o vectors.o objects.o scene.o
 	gcc renderer.o vectors.o objects.o scene.o -o renderer $(LIBS)
 
