@@ -121,7 +121,7 @@ void render_scene(SDL_Surface *surf, Scene *scene, Point3D offset, RotationVecto
 
 
 void rotateAI(Object *obj, Scene *scene){
-    obj->rotation.rotZ += M_PI/100;
+    obj->rotation.rotY += M_PI/100;
 }
 //Generates a new model of a 1x1x1 cube. Will probably need to be scaled.
 Model * generate_cube(){
@@ -167,11 +167,12 @@ int main(){
     double lookY = 0.0;
     Model *cubeModel = generate_cube(100);
     Model_scale(cubeModel, 100);
+    Model_centerize(cubeModel);
     Scene_add_object(scene, Object_new(cubeModel, 0xFF0000, 0,0,0));
     Scene_add_object(scene, Object_new(cubeModel, 0x00FF00, 100,0,800));
     Scene_add_object(scene, Object_new(cubeModel, 0x0000FF, -400, 0, 0));
 
-    scene->objects->obj->ai = &rotateAI;
+    //scene->objects->obj->ai = &rotateAI;
     
     Uint8 *keyState = SDL_GetKeyState(NULL);
     while (running == 1){

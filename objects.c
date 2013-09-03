@@ -65,5 +65,54 @@ void Object_tick(Object *obj, Scene *scene){
     (obj->ai)(obj, scene);
 }
 
-    
-    
+void Model_shift(Model *model, Point3D delta){
+    Model *cur;
+    for (cur = model; cur != NULL;cur=cur->next){
+	cur->line.p1 = Point3D_add(cur->line.p1, delta);
+	cur->line.p2 = Point3D_add(cur->line.p2, delta);
+    }
+}
+
+Model * Model_duplicate(Model *model){
+    Model *new_model = NULL;
+    Model *cur;
+    for (cur = model; cur != NULL; cur = cur->next){
+	new_model = Model_add(new_model, cur->line);
+    }
+    return new_model;
+}
+
+Model * Model_combine(Model *m1, Model *m2){
+    Model *cur;
+    for (cur=m1; cur->next != NULL; cur=cur->next);
+    cur->next = m2;
+    return m1;
+}
+
+Model * Model_duplicate_and_shift(Model *model, Point3D delta){
+    Model *newlines = Model_duplicate(model);
+    Model_shift(newlines, delta);
+    return Model_combine(model, newlines);
+}
+
+Point3D Model_average_point(Model *model){
+    Point3D sum = {0,0,0};
+    int count = 0;
+    Model *cur;
+    for (cur=model; cur != NULL; cur=cur->next){
+	sum = Point3D_add(sum, cur->line.p1);
+	sum = Point3D_add(sum, cur->line.p2);
+	count += 2;
+    }
+    sum.x /= count;
+    sum.y /= count;
+    sum.z /= count;
+    return sum;
+}
+
+void Model_centerize(Model *model){
+    Point3D center = Model_average_point(model);
+    Point3D origin = {0,0,0};
+    Point3D delta = Point3D_subtract(origin, center);
+    Model_shift(model, delta);
+}

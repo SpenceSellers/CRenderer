@@ -42,5 +42,16 @@ Object * Object_new(Model *model, Uint32 color, int x, int y, int z);
 void Object_rotate(Object *obj, float rotX, float rotY, float rotZ);
 
 void Object_tick(Object *obj, Scene *scene);
+
+void Model_shift(Model *model, Point3D delta);
+
+Model * Model_duplicate(Model *model);
+
+Model * Model_duplicate_and_shift(Model *model, Point3D delta);
+
+Point3D Model_average_point(Model *model);
+
+void Model_centerize(Model *model);
+
 #endif
 
