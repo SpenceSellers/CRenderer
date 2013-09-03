@@ -1,15 +1,38 @@
 #include "objects.h"
 
 void Model_scale(Model *model, double factor){
-    int i;
-    for (i = 0; i < model->num_lines; i++){
-	Line3D *l;
-        Line3D_scale(&model->lines[i], factor);
+    Model *current;
+    for (current = model; current != NULL; current= current->next){
+	//Line3D *l;
+        Line3D_scale(&current->line, factor);
     }
 }
 
+Model * Model_add(Model *model, Line3D line){
+    printf("Added line: %d %d %d -> %d %d %d\n",
+	   line.p1.x, line.p1.y, line.p1.z,
+	   line.p2.x, line.p2.y, line.p2.z);
+    Model *new_node = malloc(sizeof(Model));
+    
+    new_node->line = line;
+    new_node->next = model;
+    return new_node;
+}
 
+void Model_print(Model *model){
+    printf("Model: {\n");
+    Model *current;
+    for (current = model; current != NULL; current = current->next){
+	Line3D line = current->line;
+	printf("Line: %d %d %d -> %d %d %d\n",
+	       line.p1.x, line.p1.y, line.p1.z,
+	       line.p2.x, line.p2.y, line.p2.z);
+    }
+    printf("} \n");
+}
 Object * Object_new(Model *model, Uint32 color, int x, int y, int z){
+    printf("Model at %p\n", model);
+    Model_print(model);
     Object *obj = malloc(sizeof(Object));
     obj->model = model;
     obj->color = color;

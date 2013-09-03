@@ -85,10 +85,15 @@ void render_model(SDL_Surface *surf,
 		  Uint32 color,
 		  RotationVector objrotation,
 		  Point3D rotcenter){
-    int i;
+    
     Point3D origin = {0,0,0};
-    for(i = 0; i < model->num_lines; i++){ // For every line in the model... 
-	Line3D line = Line3D_rotate_around_point(model->lines[i], objrotation, rotcenter); 
+    Model *current;
+    
+    for(current = model; current != NULL; current = current->next){
+        // For every line in the model...
+	Line3D line = Line3D_rotate_around_point(current->line,
+						 objrotation,
+						 rotcenter); 
 	//line = Line3D_rotate_around_point(line, scenerotation, offset);
 	render_line3D(line, offset, surf, color, scenerotation);
     }
@@ -118,25 +123,22 @@ void render_scene(SDL_Surface *surf, Scene *scene, Point3D offset, RotationVecto
 
 //Generates a new model of a 1x1x1 cube. Will probably need to be scaled.
 Model * generate_cube(){
-    Model *model = malloc(sizeof(Model));
-    model->num_lines = 12;
-    model->lines = calloc(12, sizeof(Line3D));
-    
-    model->lines[0] = (Line3D) {0,0,0,0,0,1};
-    model->lines[1] = (Line3D) {0,1,0,0,1,1};
-    model->lines[2] = (Line3D) {1,1,0,1,1,1};
-    model->lines[3] = (Line3D) {1,0,0,1,0,1};
+    Model *model;
+    model = Model_add(NULL, (Line3D) {0,0,0,0,0,1});
+    model = Model_add(model, (Line3D) {0,1,0,0,1,1});
+    model = Model_add(model, (Line3D) {1,1,0,1,1,1});
+    model = Model_add(model, (Line3D) {1,0,0,1,0,1});
+    model = Model_add(model, (Line3D) {0,0,0,1,0,0});
+    model = Model_add(model, (Line3D) {0,0,1,1,0,1});
+    model = Model_add(model, (Line3D) {0,1,0,1,1,0});
+    model = Model_add(model, (Line3D) {0,1,1,1,1,1});
 
-    model->lines[4] = (Line3D) {0,0,0,1,0,0};
-    model->lines[5] = (Line3D) {0,0,1,1,0,1};
-    model->lines[6] = (Line3D) {0,1,0,1,1,0};
-    model->lines[7] = (Line3D) {0,1,1,1,1,1};
-
-    model->lines[8] = (Line3D) {0,0,0,0,1,0};
-    model->lines[9] = (Line3D) {1,0,0,1,1,0};
-    model->lines[10] = (Line3D) {1,0,1,1,1,1};
-    model->lines[11] = (Line3D) {0,0,1,0,1,1};
-
+    model = Model_add(model, (Line3D) {0,0,0,0,1,0});
+    model = Model_add(model, (Line3D) {1,0,0,1,1,0});
+    model = Model_add(model, (Line3D) {1,0,1,1,1,1});
+    model = Model_add(model, (Line3D) {0,0,1,0,1,1});
+    printf("Model at %p\n", model);
+    printf("Model->next %p\n", model->next);
     return model;
 }
     
@@ -162,10 +164,8 @@ int main(){
 
     double lookX = 0.0;
     double lookY = 0.0;
-    
     Model *cubeModel = generate_cube(100);
     Model_scale(cubeModel, 100);
-
     Scene_add_object(scene, Object_new(cubeModel, 0xFF0000, 0,0,0));
     Scene_add_object(scene, Object_new(cubeModel, 0x00FF00, 100,0,800));
     Scene_add_object(scene, Object_new(cubeModel, 0x0000FF, -400, 0, 0));

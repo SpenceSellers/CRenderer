@@ -5,8 +5,8 @@
 #include <SDL/SDL.h>
 /* A model is a shape (series of lines) with no positional information at all. */
 typedef struct Model {
-    int num_lines;
-    Line3D *lines;
+    Line3D line;
+    struct Model *next;
 } Model;
 
 typedef struct Object {
@@ -22,6 +22,9 @@ typedef struct Object {
 
 */
 void Model_scale(Model *model, double factor);
+
+// Returns the new model pointer!
+Model * Model_add(Model *model, Line3D line);
 
 // Creates a new object according to the common parameters.
 Object * Object_new(Model *model, Uint32 color, int x, int y, int z);
