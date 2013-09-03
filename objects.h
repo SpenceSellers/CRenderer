@@ -53,5 +53,7 @@ Point3D Model_average_point(Model *model);
 
 void Model_centerize(Model *model);
 
+Model * Model_extrude(Model *model, Point3D delta, int bothsides);
+
 #endif
 

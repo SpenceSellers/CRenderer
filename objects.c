@@ -116,3 +116,27 @@ void Model_centerize(Model *model){
     Point3D delta = Point3D_subtract(origin, center);
     Model_shift(model, delta);
 }
+
+Model * Model_extrude(Model *model, Point3D delta, int bothsides){
+    Model *dup = Model_duplicate(model);
+    Model *ex_lines = NULL;
+    Model_shift(dup, delta);
+    
+    Model *cur;
+    Model *dup_cur = dup;
+    for (cur = model; cur != NULL; cur = cur->next){
+	Line3D l;
+	l.p1 = cur->line.p1;
+	l.p2 = dup_cur->line.p1;
+	ex_lines = Model_add(ex_lines, l);
+	if (bothsides){
+	    l.p1 = cur->line.p2;
+	    l.p2 = dup_cur->line.p2;
+	    ex_lines = Model_add(ex_lines, l);
+	}
+	dup_cur= dup_cur->next;
+    }
+    model = Model_combine(dup, model); 
+    model = Model_combine(ex_lines, model); //This?
+    return model;
+}

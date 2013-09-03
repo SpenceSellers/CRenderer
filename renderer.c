@@ -84,7 +84,7 @@ void render_model(SDL_Surface *surf,
 		  Uint32 color,
 		  RotationVector objrotation,
 		  Point3D rotcenter){
-    
+
     Point3D origin = {0,0,0};
     Model *current;
     
@@ -92,13 +92,16 @@ void render_model(SDL_Surface *surf,
         // For every line in the model...
 	Line3D line = Line3D_rotate_around_point(current->line,
 						 objrotation,
-						 rotcenter); 
+						 origin); 
 	//line = Line3D_rotate_around_point(line, scenerotation, offset);
 	render_line3D(line, offset, surf, color, scenerotation);
     }
 }
 
-void render_object(SDL_Surface *surf, Object *obj, Point3D offset, RotationVector scenerotation){
+void render_object(SDL_Surface *surf,
+		   Object *obj,
+		   Point3D offset,
+		   RotationVector scenerotation){
     Point3D origin = {0,0,0};
     render_model(surf,
 		 obj->model, //Model
@@ -107,8 +110,8 @@ void render_object(SDL_Surface *surf, Object *obj, Point3D offset, RotationVecto
 		 origin, //Scene Rotation Center
 		 obj->color,
 		 obj->rotation, //Object rotation
-		 //obj->pos
-		 Point3D_rotate_around_point(obj->pos, scenerotation, obj->pos) //Object rotation center
+		 obj->pos
+		 //Point3D_rotate_around_point(obj->pos, scenerotation, obj->pos) //Object rotation center
 		 ); 
 }
 
@@ -143,7 +146,14 @@ Model * generate_cube(){
     printf("Model->next %p\n", model->next);
     return model;
 }
-    
+
+Model * gen_newcube(){
+    Model *model;
+    model = Model_add(NULL, (Line3D) {0,0,0,0,0,100});
+    model = Model_extrude(model, (Point3D) {0,100,0},1);
+    model = Model_extrude(model, (Point3D) {100, 0, 0},1);
+    return model;
+}
     
 int main(){
     SDL_Surface *screen; 
@@ -152,8 +162,8 @@ int main(){
     screen = SDL_SetVideoMode(HEIGHT, WIDTH, 32, SDL_RESIZABLE | SDL_HWSURFACE);
     
     // Set up mouse.
-    SDL_ShowCursor(0);
-    SDL_WM_GrabInput(SDL_GRAB_ON);
+    //SDL_ShowCursor(0);
+    //SDL_WM_GrabInput(SDL_GRAB_ON);
     
     int running = 1;
     int time = 0;
@@ -165,14 +175,15 @@ int main(){
 
     double lookX = 0.0;
     double lookY = 0.0;
-    Model *cubeModel = generate_cube(100);
-    Model_scale(cubeModel, 100);
+    //Model *cubeModel = generate_cube(100);
+    //Model_scale(cubeModel, 100);
+    Model *cubeModel = gen_newcube();
     Model_centerize(cubeModel);
     Scene_add_object(scene, Object_new(cubeModel, 0xFF0000, 0,0,0));
     Scene_add_object(scene, Object_new(cubeModel, 0x00FF00, 100,0,800));
     Scene_add_object(scene, Object_new(cubeModel, 0x0000FF, -400, 0, 0));
 
-    //scene->objects->obj->ai = &rotateAI;
+    scene->objects->obj->ai = &rotateAI;
     
     Uint8 *keyState = SDL_GetKeyState(NULL);
     while (running == 1){
