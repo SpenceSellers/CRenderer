@@ -162,8 +162,8 @@ int main(){
     screen = SDL_SetVideoMode(HEIGHT, WIDTH, 32, SDL_RESIZABLE | SDL_HWSURFACE);
     
     // Set up mouse.
-    //SDL_ShowCursor(0);
-    //SDL_WM_GrabInput(SDL_GRAB_ON);
+    SDL_ShowCursor(0);
+    SDL_WM_GrabInput(SDL_GRAB_ON);
     
     int running = 1;
     int time = 0;
