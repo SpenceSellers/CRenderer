@@ -123,8 +123,10 @@ void render_scene(SDL_Surface *surf, Scene *scene, Point3D offset, RotationVecto
 }
 
 
-void rotateAI(Object *obj, Scene *scene){
+void AI_indicator(Object *obj, Scene *scene){
     obj->rotation.rotY += M_PI/100;
+    //obj->pos.y += 2 * sin(scene->time/20);
+    obj->pos.y += 1*(((scene->time/100)%2)*2 - 1);
 }
 //Generates a new model of a 1x1x1 cube. Will probably need to be scaled.
 Model * generate_cube(){
@@ -154,7 +156,25 @@ Model * gen_newcube(){
     model = Model_extrude(model, (Point3D) {100, 0, 0},1);
     return model;
 }
+
+Model * gen_arrow(){
+    Model *model;
+    model = Model_add(NULL, (Line3D) {0,0,0,0,0,50});
+    model = Model_add(model, (Line3D) {0,50,0,0,0,0});
+    model = Model_add(model, (Line3D) {0,50,50,0,0,50});
+
+    model = Model_add(model, (Line3D) {0,50,-50,0,50,0});
+    model = Model_add(model, (Line3D) {0,50,50,0,50,100});
     
+    model = Model_add(model, (Line3D) {0,100,25,0,50,-50});
+    model = Model_add(model, (Line3D) {0,100,25,0,50,100});
+    
+    model = Model_extrude(model, (Point3D) {50,0,0},1);
+
+    Model_centerize(model);
+    return model;
+    
+}
 int main(){
     SDL_Surface *screen; 
     SDL_Event event;
@@ -179,11 +199,12 @@ int main(){
     //Model_scale(cubeModel, 100);
     Model *cubeModel = gen_newcube();
     Model_centerize(cubeModel);
-    Scene_add_object(scene, Object_new(cubeModel, 0xFF0000, 0,0,0));
-    Scene_add_object(scene, Object_new(cubeModel, 0x00FF00, 100,0,800));
+    Scene_add_object(scene, Object_new(gen_arrow(), 0xFF0000, 0,-120,0));
+    scene->objects->obj->ai = &AI_indicator;
+    
+    Scene_add_object(scene, Object_new(cubeModel, 0x00FF00, 0,0,0));
     Scene_add_object(scene, Object_new(cubeModel, 0x0000FF, -400, 0, 0));
 
-    scene->objects->obj->ai = &rotateAI;
     
     Uint8 *keyState = SDL_GetKeyState(NULL);
     while (running == 1){

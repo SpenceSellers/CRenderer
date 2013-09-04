@@ -34,6 +34,7 @@ void Scene_remove_object(Scene *scene, Object *obj){
 }
 
 void Scene_tick(Scene *scene){
+    scene->time++;
     SceneList *current;
     for(current = scene->objects; current != NULL; current = current->next){
 	Object_tick(current->obj, scene);
