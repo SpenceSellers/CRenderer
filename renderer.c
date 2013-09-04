@@ -6,6 +6,7 @@
 #include "vectors.h"
 #include "objects.h"
 #include "scene.h"
+#include "loadmodel.h"
 
 #define HEIGHT 800
 #define WIDTH 800
@@ -204,6 +205,10 @@ int main(){
     
     Scene_add_object(scene, Object_new(cubeModel, 0x00FF00, 0,0,0));
     Scene_add_object(scene, Object_new(cubeModel, 0x0000FF, -400, 0, 0));
+
+    Model *loaded = load_model("test.c3d");
+    
+    Scene_add_object(scene, Object_new(loaded, 0xFFFFFF, 600, 0, 0));
 
     
     Uint8 *keyState = SDL_GetKeyState(NULL);
