@@ -9,6 +9,25 @@ Model * read_line(FILE *file, Model *model){
     return Model_add(model, l);
 }
 
+Model * read_extrude(FILE *file, Model *model){
+    Point3D d;
+    fscanf(file, " %d %d %d ",
+	   &d.x, &d.y, &d.z
+	);
+    return Model_extrude(model, d, 1);
+}
+
+Model * read_to(FILE *file, Model *model){
+    Point3D last = model->line.p2;
+    Point3D p;
+    fscanf(file, " %d %d %d ", &p.x, &p.y, &p.z);
+    Line3D l;
+    l.p1 = last;
+    l.p2 = p;
+    model = Model_add(model, l);
+    return model;
+}
+    
 Model * load_model(char *name){
     FILE *file;
     char fname_buffer[256];
@@ -38,6 +57,10 @@ Model * load_model(char *name){
 	
 	if (strcmp("Line", action_word) == 0){
 	    model = read_line(file, model);
+	} else if (strcmp("Extrude", action_word) == 0){
+	    model = read_extrude(file, model);
+	} else if (strcmp("To", action_word) == 0){
+	    model = read_to(file, model);
 	} else {
 	    printf("Unrecognized word: %s \n", action_word);
 	}
