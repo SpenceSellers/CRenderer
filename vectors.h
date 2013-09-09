@@ -50,4 +50,9 @@ Line3D Line3D_rotate_around_point(Line3D line,
 				  RotationVector rotation,
 				  Point3D center);
 
+Point3D Line3D_vectorize(Line3D line);
+
+int Point3D_dot_product(Point3D a, Point3D b);
+
+Point3D Point3D_cross_product(Point3D a, Point3D b);
 #endif

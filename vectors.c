@@ -74,3 +74,23 @@ Line3D Line3D_rotate_around_point(Line3D line, RotationVector rotation, Point3D 
     line.p2 = Point3D_rotate_around_point(line.p2, rotation, center);
     return line;
 }
+
+Point3D Line3D_vectorize(Line3D line){
+    Point3D p;
+    p.x = line.p2.x - line.p1.x;
+    p.y = line.p2.y - line.p1.y;
+    p.z = line.p2.z - line.p1.z;
+    return p;
+}
+
+int Point3D_dot_product(Point3D a, Point3D b){
+    return a.x*b.x + a.y*b.y + a.z*b.z;
+}
+
+Point3D Point3D_cross_product(Point3D a, Point3D b){
+    Point3D result;
+    result.x = a.y * b.z - a.z * b.y;
+    result.y = a.z * b.x - a.x * b.z;
+    result.z = a.x * b.y - a.y * b.x;
+    return result;
+}

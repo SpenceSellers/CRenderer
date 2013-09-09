@@ -1,5 +1,7 @@
 #include "loadmodel.h"
 
+#define MODEL_DIR "models/"
+
 Model * read_line(FILE *file, Model *model){
     Line3D l ;
     fscanf(file, " %d %d %d %*s %d %d %d ",
@@ -38,7 +40,7 @@ Model * load_model(char *name){
 
     Model *model = NULL;
     
-    strcpy(fname_buffer, "models/");
+    strcpy(fname_buffer, MODEL_DIR);
     strcat(fname_buffer, name);
     
     file = fopen(fname_buffer, "r");
