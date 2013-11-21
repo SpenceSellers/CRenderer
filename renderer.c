@@ -129,26 +129,6 @@ void AI_indicator(Object *obj, Scene *scene){
     //obj->pos.y += 2 * sin(scene->time/20);
     obj->pos.y += 1*(((scene->time/100)%2)*2 - 1);
 }
-//Generates a new model of a 1x1x1 cube. Will probably need to be scaled.
-Model * generate_cube(){
-    Model *model;
-    model = Model_add(NULL, (Line3D) {0,0,0,0,0,1});
-    model = Model_add(model, (Line3D) {0,1,0,0,1,1});
-    model = Model_add(model, (Line3D) {1,1,0,1,1,1});
-    model = Model_add(model, (Line3D) {1,0,0,1,0,1});
-    model = Model_add(model, (Line3D) {0,0,0,1,0,0});
-    model = Model_add(model, (Line3D) {0,0,1,1,0,1});
-    model = Model_add(model, (Line3D) {0,1,0,1,1,0});
-    model = Model_add(model, (Line3D) {0,1,1,1,1,1});
-
-    model = Model_add(model, (Line3D) {0,0,0,0,1,0});
-    model = Model_add(model, (Line3D) {1,0,0,1,1,0});
-    model = Model_add(model, (Line3D) {1,0,1,1,1,1});
-    model = Model_add(model, (Line3D) {0,0,1,0,1,1});
-    printf("Model at %p\n", model);
-    printf("Model->next %p\n", model->next);
-    return model;
-}
 
 Model * gen_newcube(){
     Model *model;
@@ -276,11 +256,12 @@ int main(){
 		printf("Releasing mouse...\n");
 		SDL_WM_GrabInput(SDL_GRAB_OFF);
 		SDL_ShowCursor(1);
-		SDL_Delay(1000); // Let the user stop pressing escape.
+		SDL_Delay(100); // Let the user stop pressing escape.
 	    } else {
 		printf("Grabbing mouse...\n");
 		SDL_WM_GrabInput(SDL_GRAB_ON);
 		SDL_ShowCursor(0);
+		SDL_Delay(100); // Let the user stop pressing escape.
 	    }
 	}
 	SDL_Delay(10);

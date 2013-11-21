@@ -29,7 +29,13 @@ Model * read_to(FILE *file, Model *model){
     model = Model_add(model, l);
     return model;
 }
-    
+
+Model * read_scale(FILE *file, Model *model){
+    double scale;
+    fscanf(file, " %lf ", &scale);
+    Model_scale(model, scale);
+    return model;
+}
 Model * load_model(char *name){
     FILE *file;
     char fname_buffer[256];
@@ -63,6 +69,8 @@ Model * load_model(char *name){
 	    model = read_extrude(file, model);
 	} else if (strcmp("To", action_word) == 0){
 	    model = read_to(file, model);
+	} else if (strcmp("Scale", action_word) == 0){
+	    model = read_scale(file, model);
 	} else {
 	    printf("Unrecognized word: %s \n", action_word);
 	}
