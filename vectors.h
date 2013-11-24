@@ -26,8 +26,9 @@ typedef struct RotationVector {
 } RotationVector;
 
 Point3D Point3D_add(Point3D p1, Point3D p2);
-
 Point3D Point3D_subtract(Point3D p1, Point3D p2);
+
+double Point3D_distance(Point3D p1, Point3D p2);
 
 Point3D Point3D_rotZ(Point3D p, double angle);
 Point3D Point3D_rotX(Point3D p, double angle);
@@ -51,6 +52,8 @@ Line3D Line3D_rotate_around_point(Line3D line,
 				  Point3D center);
 
 Point3D Line3D_vectorize(Line3D line);
+double Line3D_length(Line3D line);
+Point3D Line3D_midpoint(Line3D line);
 
 int Point3D_dot_product(Point3D a, Point3D b);
 

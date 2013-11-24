@@ -16,6 +16,18 @@ Point3D Point3D_subtract(Point3D p1, Point3D p2){
     return result;
 }
 
+Point3D Point3D_multiply(Point3D p, double scale){
+    p.x *= scale;
+    p.y *= scale;
+    p.z *= scale;
+}
+
+double Point3D_distance(Point3D p1, Point3D p2){
+    return sqrt(
+	        pow(p2.x - p1.x, 2) +
+		pow(p2.y - p1.y, 2) +
+		pow(p2.z - p1.z, 2));
+}
 Point3D Point3D_rotZ(Point3D p, double angle){
     if (angle == 0.0) return p;
     int x = p.x * cos(angle) - p.y * sin(angle);
@@ -81,6 +93,14 @@ Point3D Line3D_vectorize(Line3D line){
     p.y = line.p2.y - line.p1.y;
     p.z = line.p2.z - line.p1.z;
     return p;
+}
+double Line3D_length(Line3D line){
+    return Point3D_distance(line.p1, line.p2);
+}
+
+Point3D Line3D_midpoint(Line3D line){
+    Point3D sum = Point3D_add(line.p1, line.p2);
+    return Point3D_multiply(sum, 0.5);
 }
 
 int Point3D_dot_product(Point3D a, Point3D b){

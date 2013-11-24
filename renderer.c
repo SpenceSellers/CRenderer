@@ -7,12 +7,12 @@
 #include "objects.h"
 #include "scene.h"
 #include "loadmodel.h"
+#include "colors.h"
 
 #define HEIGHT 800
 #define WIDTH 800
 #define MOVESPEED 10
 #define MOUSESCALING 1.0/1000
-
 
 // Sets a pixel at a point on a surface to a color.
 void set_pixel(SDL_Surface *surf, int x, int y, Uint32 color){
@@ -26,7 +26,6 @@ void set_pixel(SDL_Surface *surf, int x, int y, Uint32 color){
     pixmem32 = (Uint32*) surf->pixels + (y * surf->w) + x;
     *pixmem32 = color;
 }
-
 /* Draws a line on a surface using Bresenham's line algorithm */
 void draw_line(SDL_Surface *surf, int x1, int y1, int x2, int y2, Uint32 color){
     // Bresenham's line algorithm
@@ -66,6 +65,19 @@ Point2D project_point(Point3D point, int eye_distance){
     return s;
 }
 
+/* Determines the color scaling of a line given the distance.
+   TODO: Don't hardcode the values.*/
+float color_scaling_from_distance(double distance){
+    if (distance < 1000){
+	return 1.0;
+    } else if (distance > 10000){
+	return 0.1;
+    } else {
+	return 1000/distance; 
+    }
+}
+
+
 void render_line3D(Line3D l, Point3D offset,  SDL_Surface *surf, Uint32 color, RotationVector scenerotation){
     //Point3D origin = {0,0,0};
     //Line3D rotated = Line3D_rotate_around_point(l, scenerotation, origin);
@@ -74,6 +86,10 @@ void render_line3D(Line3D l, Point3D offset,  SDL_Surface *surf, Uint32 color, R
     //Project the two points.
     Point2D p1 = project_point(first, 500);
     Point2D p2 = project_point(second, 500);
+    
+    //Scale the darkness of the color depending on the midpoint of the line.
+    color = scale_color(color, color_scaling_from_distance((first.z + second.z)/2));
+    
     draw_line(surf, p1.x, p1.y, p2.x, p2.y, color);
 }
 
